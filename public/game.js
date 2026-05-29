@@ -253,7 +253,7 @@ const LOCATIONS = {
   // Curated
   cities:     { label: "Famous Cities",     icon: "🏙️", desc: "44 major world cities",   type: "points", points: CITIES,    radius: 8000 },
   landmarks:  { label: "Famous Landmarks",  icon: "🗿", desc: "Iconic sites worldwide",   type: "points", points: LANDMARKS, radius: 2500 },
-  flags:      { label: "Flags",             icon: "🚩", desc: "Spot the flag flying in view", type: "points", points: FLAG_SPOTS, radius: 400, jitter: 0 },
+  flags:      { label: "Flags",             icon: "🚩", desc: "Spot the flag flying in view", type: "points", points: FLAG_SPOTS, radius: 200, jitter: 0, targetPitch: 18 },
 };
 
 const LOCATION_SECTIONS = {
@@ -313,22 +313,28 @@ function pickWeighted(items, weightFn) {
   for (const it of items) if ((n -= weightFn(it)) <= 0) return it;
   return items[0];
 }
-function samplePoint(loc) {
+function pickStart(loc) {
+  // Returns { location, target } — `target` is the curated point we're trying
+  // to spawn near (used to aim the camera at it on round start); null for
+  // bounding-box pools where there's no specific subject.
   if (loc.type === "regions") {
     const r = pickWeighted(loc.regions, (r) => r[4]);
-    return randomInBox(r);
+    return { location: randomInBox(r), target: null };
   }
-  if (loc.type === "box") return randomInBox(loc.box);
+  if (loc.type === "box") return { location: randomInBox(loc.box), target: null };
   if (loc.type === "boxes") {
     const b = pickWeighted(loc.boxes, (b) => b[4]);
-    return randomInBox(b);
+    return { location: randomInBox(b), target: null };
   }
   if (loc.type === "points") {
     const p = loc.points[Math.floor(Math.random() * loc.points.length)];
     const j = loc.jitter == null ? 0.04 : loc.jitter;
     return {
-      lat: p.lat + (Math.random() - 0.5) * j,
-      lng: p.lng + (Math.random() - 0.5) * j,
+      location: {
+        lat: p.lat + (Math.random() - 0.5) * j,
+        lng: p.lng + (Math.random() - 0.5) * j,
+      },
+      target: { lat: p.lat, lng: p.lng, name: p.name },
     };
   }
   throw new Error("Unknown location type: " + loc.type);
@@ -384,7 +390,8 @@ async function findStreetView(loc) {
   const max = loc.type === "points" ? 30 : 150;
 
   for (let attempts = 0; attempts < max; attempts++) {
-    const pano = await getPanoramaAt(svc, samplePoint(loc), loc.radius || 50000);
+    const pick = pickStart(loc);
+    const pano = await getPanoramaAt(svc, pick.location, loc.radius || 50000);
     if (!pano) continue;
     if (state.usedPanoIds.has(pano.panoId)) continue;  // no repeats within a game
     if (geocoder) {
@@ -392,6 +399,7 @@ async function findStreetView(loc) {
       if (!ok) continue;
     }
     state.usedPanoIds.add(pano.panoId);
+    pano.target = pick.target;
     return pano;
   }
   throw new Error("Could not find Street View");
@@ -492,7 +500,18 @@ async function startRound() {
       panControl:   true,
     });
     state.panorama.setPano(loc.panoId);
-    state.panorama.setPov({ heading: Math.random() * 360, pitch: 0 });
+
+    // If the location has a curated target (Flags, Cities, Landmarks), point
+    // the camera at it on spawn so the subject is in the initial view.
+    let heading = Math.random() * 360;
+    let pitch = 0;
+    if (loc.target) {
+      const from = new google.maps.LatLng(loc.latLng.lat, loc.latLng.lng);
+      const to   = new google.maps.LatLng(loc.target.lat, loc.target.lng);
+      heading = google.maps.geometry.spherical.computeHeading(from, to);
+      pitch = state.config.location.targetPitch ?? 5;
+    }
+    state.panorama.setPov({ heading, pitch });
     state.panorama.setVisible(true);
   } catch (e) {
     console.error(e);
