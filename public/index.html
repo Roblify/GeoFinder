@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GeoFinder</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <!-- ===================== Mode select ===================== -->
+    <div id="mode-overlay">
+      <div class="mode-card mode-card-lg">
+        <div class="brand brand-lg">Geo<span>Finder</span></div>
+        <p class="tagline">Pick a style, then a location.</p>
+
+        <div class="style-row">
+          <span class="style-label">Style</span>
+          <div class="segmented" id="style-segmented">
+            <button class="seg active" data-style="classic">
+              <span class="seg-ico">🌍</span> Classic
+              <span class="seg-sub">2:00 · move</span>
+            </button>
+            <button class="seg" data-style="nomove">
+              <span class="seg-ico">📍</span> No Move
+              <span class="seg-sub">2:00 · locked</span>
+            </button>
+            <button class="seg" data-style="blitz">
+              <span class="seg-ico">⚡</span> Time Attack
+              <span class="seg-sub">0:30 · move</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="section-label">World</div>
+        <div class="mode-grid" id="loc-grid-world"></div>
+
+        <div class="section-label">Continents</div>
+        <div class="mode-grid" id="loc-grid-continents"></div>
+
+        <div class="section-label">Countries</div>
+        <div class="mode-grid mode-grid-3" id="loc-grid-countries"></div>
+
+        <div class="section-label">Curated</div>
+        <div class="mode-grid" id="loc-grid-curated"></div>
+
+        <form method="POST" action="/logout" class="logout-row">
+          <button type="submit" class="ghost-btn small">Logout</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ===================== Game ===================== -->
+    <header class="topbar">
+      <div class="brand">Geo<span>Finder</span></div>
+      <div class="hud">
+        <div class="hud-item mode-pill" id="mode-label">Classic</div>
+        <div class="hud-item">
+          <span class="hud-label">Round</span>
+          <span id="round-num">1</span><span class="muted">/</span><span id="round-total">5</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">Score</span>
+          <span id="total-score">0</span>
+        </div>
+        <div class="hud-item timer" id="timer-wrap">
+          <span class="hud-label">Time</span>
+          <span id="timer-text">2:00</span>
+          <div class="timer-bar"><div class="timer-bar-fill" id="timer-fill"></div></div>
+        </div>
+        <button id="menu-btn" class="ghost-btn">Menu</button>
+      </div>
+    </header>
+
+    <main id="game">
+      <div id="street-view"></div>
+
+      <div id="guess-panel">
+        <div id="guess-map"></div>
+        <button id="guess-btn" disabled>Place a pin to guess</button>
+      </div>
+    </main>
+
+    <!-- ===================== Round result ===================== -->
+    <div id="result-overlay" class="hidden">
+      <div class="result-card">
+        <h2 id="result-title">Round Result</h2>
+        <div class="result-stats">
+          <div class="stat">
+            <div class="stat-label">Distance</div>
+            <div class="stat-value" id="result-distance">—</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Points</div>
+            <div class="stat-value points" id="result-points">—</div>
+          </div>
+        </div>
+        <div id="result-map"></div>
+        <button id="next-btn" class="primary-btn">Next Round</button>
+      </div>
+    </div>
+
+    <!-- ===================== Final ===================== -->
+    <div id="final-overlay" class="hidden">
+      <div class="result-card">
+        <h2>Game Over</h2>
+        <div class="final-score" id="final-score">—</div>
+        <div class="final-grade" id="final-grade"></div>
+        <div class="final-actions">
+          <button id="play-again-btn" class="primary-btn">Play Again</button>
+          <button id="change-mode-btn" class="ghost-btn">Change Mode</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="loading" class="hidden"><div class="spinner"></div></div>
+
+    <script src="/maps.js"></script>
+    <script src="/game.js"></script>
+  </body>
+</html>
