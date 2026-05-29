@@ -161,59 +161,94 @@ const FLAG_SPOTS = [
   { name: "Beehive, Wellington",   lat: -41.2784, lng: 174.7766 },  // NZ
 ];
 
+// Country whitelists per continent (ISO 3166-1 alpha-2). Transcontinental
+// countries (Russia, Turkey, Cyprus, Egypt) appear in both relevant lists.
+const CONTINENT_COUNTRIES = {
+  europe: [
+    "AL","AD","AT","BY","BE","BA","BG","HR","CY","CZ","DK","EE","FI","FR","DE",
+    "GR","HU","IS","IE","IT","XK","LV","LI","LT","LU","MT","MD","MC","ME","NL",
+    "MK","NO","PL","PT","RO","SM","RS","SK","SI","ES","SE","CH","TR","UA","GB",
+    "VA","RU",
+  ],
+  na: [
+    "US","CA","MX","GT","BZ","SV","HN","NI","CR","PA","CU","JM","HT","DO","PR",
+    "BS","TT","BB","GL","AG","DM","GD","KN","LC","VC","AI","BM","KY","MS","TC",
+    "VG","VI",
+  ],
+  sa: ["AR","BO","BR","CL","CO","EC","GY","PY","PE","SR","UY","VE","FK","GF"],
+  asia: [
+    "AF","AM","AZ","BH","BD","BT","BN","KH","CN","GE","HK","IN","ID","IR","IQ",
+    "IL","JP","JO","KZ","KW","KG","LA","LB","MO","MY","MV","MN","MM","NP","KP",
+    "OM","PK","PS","PH","QA","SA","SG","KR","LK","SY","TW","TJ","TH","TL","TR",
+    "TM","AE","UZ","VN","YE","RU","CY",
+  ],
+  africa: [
+    "DZ","AO","BJ","BW","BF","BI","CV","CM","CF","TD","KM","CG","CD","CI","DJ",
+    "EG","GQ","ER","SZ","ET","GA","GM","GH","GN","GW","KE","LS","LR","LY","MG",
+    "MW","ML","MR","MU","YT","MA","MZ","NA","NE","NG","RW","RE","SH","ST","SN",
+    "SC","SL","SO","ZA","SS","SD","TZ","TG","TN","UG","EH","ZM","ZW",
+  ],
+  oceania: [
+    "AU","NZ","PG","FJ","SB","VU","NC","PF","WS","TO","KI","FM","MH","NR","PW",
+    "TV","AS","CK","GU","MP","NU","NF","PN","TK","WF",
+  ],
+};
+
 const LOCATIONS = {
   world:      { label: "World",         icon: "🌍", desc: "Anywhere on Earth", type: "regions", regions: WORLD_REGIONS, radius: 50000 },
 
-  // Continents
-  europe:     { label: "Europe",        icon: "🏰", desc: "Bordeaux to Bucharest", type: "box", box: [35, 71, -10, 45], radius: 50000 },
-  na:         { label: "North America", icon: "🗽", desc: "Canada · USA · Mexico", type: "box", box: [15, 70, -168, -52], radius: 80000 },
-  sa:         { label: "South America", icon: "🌴", desc: "Patagonia to the Caribbean", type: "box", box: [-56, 13, -82, -34], radius: 80000 },
-  asia:       { label: "Asia",          icon: "🏯", desc: "From Turkey to Japan", type: "box", box: [5, 60, 25, 145], radius: 80000 },
-  africa:     { label: "Africa",        icon: "🦓", desc: "Cape to Cairo", type: "box", box: [-35, 37, -18, 52], radius: 100000 },
-  oceania:    { label: "Oceania",       icon: "🏝️", desc: "Australia · NZ · Pacific", type: "box", box: [-47, -10, 110, 179], radius: 100000 },
+  // Continents — bounding box plus a whitelist of country codes so border
+  // panos don't spill into the wrong continent.
+  europe:     { label: "Europe",        icon: "🏰", desc: "Bordeaux to Bucharest",       countries: CONTINENT_COUNTRIES.europe,  type: "box", box: [35, 71, -10, 45], radius: 50000 },
+  na:         { label: "North America", icon: "🗽", desc: "Canada · USA · Mexico",       countries: CONTINENT_COUNTRIES.na,      type: "box", box: [15, 70, -168, -52], radius: 80000 },
+  sa:         { label: "South America", icon: "🌴", desc: "Patagonia to the Caribbean", countries: CONTINENT_COUNTRIES.sa,      type: "box", box: [-56, 13, -82, -34], radius: 80000 },
+  asia:       { label: "Asia",          icon: "🏯", desc: "From Turkey to Japan",        countries: CONTINENT_COUNTRIES.asia,    type: "box", box: [5, 60, 25, 145], radius: 80000 },
+  africa:     { label: "Africa",        icon: "🦓", desc: "Cape to Cairo",               countries: CONTINENT_COUNTRIES.africa,  type: "box", box: [-35, 37, -18, 52], radius: 100000 },
+  oceania:    { label: "Oceania",       icon: "🏝️", desc: "Australia · NZ · Pacific",    countries: CONTINENT_COUNTRIES.oceania, type: "box", box: [-47, -10, 110, 179], radius: 100000 },
 
-  // Countries (alphabetical)
-  argentina:  { label: "Argentina",      icon: "🇦🇷", desc: "Pampas & Patagonia",         type: "box", box: [-55, -22, -73, -54], radius: 80000 },
-  australia:  { label: "Australia",      icon: "🇦🇺", desc: "The whole continent",         type: "box", box: [-39, -11, 113, 154], radius: 100000 },
-  austria:    { label: "Austria",        icon: "🇦🇹", desc: "Alps & Vienna",               type: "box", box: [46.4, 49, 9.5, 17], radius: 25000 },
-  belgium:    { label: "Belgium",        icon: "🇧🇪", desc: "Compact & dense",             type: "box", box: [49.5, 51.5, 2.5, 6.4], radius: 20000 },
-  brazil:     { label: "Brazil",         icon: "🇧🇷", desc: "Amazon to Atlantic",          type: "box", box: [-33, 5, -74, -34], radius: 80000 },
-  canada:     { label: "Canada",         icon: "🇨🇦", desc: "Sea to sea",                  type: "box", box: [42, 70, -141, -52], radius: 80000 },
-  chile:      { label: "Chile",          icon: "🇨🇱", desc: "Long & narrow",               type: "box", box: [-55, -17, -75, -67], radius: 60000 },
-  china:      { label: "China",          icon: "🇨🇳", desc: "Coverage is limited",         type: "box", box: [20, 50, 75, 135], radius: 80000 },
-  colombia:   { label: "Colombia",       icon: "🇨🇴", desc: "Andes to Caribbean",          type: "box", box: [-4, 12, -79, -67], radius: 50000 },
-  czechia:    { label: "Czechia",        icon: "🇨🇿", desc: "Bohemia & Moravia",           type: "box", box: [48.5, 51, 12, 19], radius: 25000 },
-  denmark:    { label: "Denmark",        icon: "🇩🇰", desc: "Jutland & islands",           type: "box", box: [54.5, 58, 8, 13], radius: 20000 },
-  finland:    { label: "Finland",        icon: "🇫🇮", desc: "Lakes & forests",             type: "box", box: [60, 70, 20, 32], radius: 40000 },
-  france:     { label: "France",         icon: "🇫🇷", desc: "Mainland France",             type: "box", box: [42, 51, -5, 8], radius: 30000 },
-  germany:    { label: "Germany",        icon: "🇩🇪", desc: "Alps to North Sea",           type: "box", box: [47, 55, 6, 15], radius: 30000 },
-  greece:     { label: "Greece",         icon: "🇬🇷", desc: "Mainland & islands",          type: "box", box: [34.8, 41.8, 19.4, 28.3], radius: 30000 },
-  india:      { label: "India",          icon: "🇮🇳", desc: "Himalaya to Kerala",          type: "box", box: [8, 35, 68, 97], radius: 60000 },
-  indonesia:  { label: "Indonesia",      icon: "🇮🇩", desc: "17,000 islands",              type: "box", box: [-11, 6, 95, 141], radius: 60000 },
-  ireland:    { label: "Ireland",        icon: "🇮🇪", desc: "The emerald isle",            type: "box", box: [51.4, 55.4, -10.5, -6], radius: 25000 },
-  israel:     { label: "Israel",         icon: "🇮🇱", desc: "Dead Sea to Galilee",         type: "box", box: [29.5, 33.3, 34.3, 35.9], radius: 20000 },
-  italy:      { label: "Italy",          icon: "🇮🇹", desc: "The boot",                    type: "box", box: [36, 47, 6, 19], radius: 30000 },
-  japan:      { label: "Japan",          icon: "🇯🇵", desc: "Tightly packed islands",      type: "box", box: [30, 45, 130, 146], radius: 30000 },
-  kenya:      { label: "Kenya",          icon: "🇰🇪", desc: "Savannas & coast",            type: "box", box: [-4.7, 5, 33.9, 41.9], radius: 50000 },
-  malaysia:   { label: "Malaysia",       icon: "🇲🇾", desc: "Peninsula & Borneo",          type: "box", box: [1, 7.5, 99.5, 119.5], radius: 40000 },
-  mexico:     { label: "Mexico",         icon: "🇲🇽", desc: "Border to border",            type: "box", box: [14, 32, -118, -86], radius: 50000 },
-  netherlands:{ label: "Netherlands",    icon: "🇳🇱", desc: "Flat & cycled",               type: "box", box: [50.7, 53.5, 3.3, 7.2], radius: 20000 },
-  newzealand: { label: "New Zealand",    icon: "🇳🇿", desc: "Two islands",                 type: "box", box: [-47, -34, 166, 179], radius: 40000 },
-  norway:     { label: "Norway",         icon: "🇳🇴", desc: "Fjords & tundra",             type: "box", box: [58, 71, 4, 31], radius: 50000 },
-  peru:       { label: "Peru",           icon: "🇵🇪", desc: "Coast, Andes, Amazon",        type: "box", box: [-18.4, 0, -81.3, -68.7], radius: 60000 },
-  philippines:{ label: "Philippines",    icon: "🇵🇭", desc: "Archipelago of 7,000",        type: "box", box: [5, 19, 117, 126.5], radius: 40000 },
-  poland:     { label: "Poland",         icon: "🇵🇱", desc: "Baltic to Tatras",            type: "box", box: [49, 55, 14, 24], radius: 30000 },
-  portugal:   { label: "Portugal",       icon: "🇵🇹", desc: "Atlantic west",               type: "box", box: [37, 42, -10, -6], radius: 25000 },
-  russia:     { label: "Russia",         icon: "🇷🇺", desc: "Across 11 time zones",        type: "box", box: [44, 70, 27, 178], radius: 100000 },
-  southafrica:{ label: "South Africa",   icon: "🇿🇦", desc: "Cape to Limpopo",             type: "box", box: [-35, -22, 16.5, 33], radius: 50000 },
-  southkorea: { label: "South Korea",    icon: "🇰🇷", desc: "Mountains & cities",          type: "box", box: [33, 38.6, 125.5, 130], radius: 25000 },
-  spain:      { label: "Spain",          icon: "🇪🇸", desc: "Mainland Iberia",             type: "box", box: [36, 44, -10, 4], radius: 30000 },
-  sweden:     { label: "Sweden",         icon: "🇸🇪", desc: "Long Nordic country",         type: "box", box: [55, 69, 11, 24], radius: 40000 },
-  switzerland:{ label: "Switzerland",    icon: "🇨🇭", desc: "Alpine confederation",        type: "box", box: [45.8, 47.8, 5.9, 10.5], radius: 20000 },
-  thailand:   { label: "Thailand",       icon: "🇹🇭", desc: "Gulf to Mekong",              type: "box", box: [5.6, 20.5, 97.3, 105.6], radius: 40000 },
-  turkey:     { label: "Turkey",         icon: "🇹🇷", desc: "Two continents",              type: "box", box: [36, 42, 26, 45], radius: 40000 },
-  uk:         { label: "United Kingdom", icon: "🇬🇧", desc: "Britain & N. Ireland",        type: "box", box: [50, 59, -8, 2], radius: 30000 },
-  usa:        { label: "USA",            icon: "🇺🇸", desc: "Mainland + Alaska",           type: "boxes", boxes: [[25, 49, -125, -67, 9], [54, 71, -167, -141, 1]], radius: 60000 },
+  // Countries (alphabetical). `country` is the ISO 3166-1 alpha-2 code used
+  // to reject panos that snap across a border into a neighboring country.
+  argentina:  { label: "Argentina",      icon: "🇦🇷", desc: "Pampas & Patagonia",         country: "AR", type: "box", box: [-55, -22, -73, -54], radius: 80000 },
+  australia:  { label: "Australia",      icon: "🇦🇺", desc: "The whole continent",         country: "AU", type: "box", box: [-39, -11, 113, 154], radius: 100000 },
+  austria:    { label: "Austria",        icon: "🇦🇹", desc: "Alps & Vienna",               country: "AT", type: "box", box: [46.4, 49, 9.5, 17], radius: 25000 },
+  belgium:    { label: "Belgium",        icon: "🇧🇪", desc: "Compact & dense",             country: "BE", type: "box", box: [49.5, 51.5, 2.5, 6.4], radius: 20000 },
+  brazil:     { label: "Brazil",         icon: "🇧🇷", desc: "Amazon to Atlantic",          country: "BR", type: "box", box: [-33, 5, -74, -34], radius: 80000 },
+  canada:     { label: "Canada",         icon: "🇨🇦", desc: "Sea to sea",                  country: "CA", type: "box", box: [42, 70, -141, -52], radius: 80000 },
+  chile:      { label: "Chile",          icon: "🇨🇱", desc: "Long & narrow",               country: "CL", type: "box", box: [-55, -17, -75, -67], radius: 60000 },
+  china:      { label: "China",          icon: "🇨🇳", desc: "Coverage is limited",         country: "CN", type: "box", box: [20, 50, 75, 135], radius: 80000 },
+  colombia:   { label: "Colombia",       icon: "🇨🇴", desc: "Andes to Caribbean",          country: "CO", type: "box", box: [-4, 12, -79, -67], radius: 50000 },
+  czechia:    { label: "Czechia",        icon: "🇨🇿", desc: "Bohemia & Moravia",           country: "CZ", type: "box", box: [48.5, 51, 12, 19], radius: 25000 },
+  denmark:    { label: "Denmark",        icon: "🇩🇰", desc: "Jutland & islands",           country: "DK", type: "box", box: [54.5, 58, 8, 13], radius: 20000 },
+  finland:    { label: "Finland",        icon: "🇫🇮", desc: "Lakes & forests",             country: "FI", type: "box", box: [60, 70, 20, 32], radius: 40000 },
+  france:     { label: "France",         icon: "🇫🇷", desc: "Mainland France",             country: "FR", type: "box", box: [42, 51, -5, 8], radius: 30000 },
+  germany:    { label: "Germany",        icon: "🇩🇪", desc: "Alps to North Sea",           country: "DE", type: "box", box: [47, 55, 6, 15], radius: 30000 },
+  greece:     { label: "Greece",         icon: "🇬🇷", desc: "Mainland & islands",          country: "GR", type: "box", box: [34.8, 41.8, 19.4, 28.3], radius: 30000 },
+  india:      { label: "India",          icon: "🇮🇳", desc: "Himalaya to Kerala",          country: "IN", type: "box", box: [8, 35, 68, 97], radius: 60000 },
+  indonesia:  { label: "Indonesia",      icon: "🇮🇩", desc: "17,000 islands",              country: "ID", type: "box", box: [-11, 6, 95, 141], radius: 60000 },
+  ireland:    { label: "Ireland",        icon: "🇮🇪", desc: "The emerald isle",            country: "IE", type: "box", box: [51.4, 55.4, -10.5, -6], radius: 25000 },
+  israel:     { label: "Israel",         icon: "🇮🇱", desc: "Dead Sea to Galilee",         country: "IL", type: "box", box: [29.5, 33.3, 34.3, 35.9], radius: 20000 },
+  italy:      { label: "Italy",          icon: "🇮🇹", desc: "The boot",                    country: "IT", type: "box", box: [36, 47, 6, 19], radius: 30000 },
+  japan:      { label: "Japan",          icon: "🇯🇵", desc: "Tightly packed islands",      country: "JP", type: "box", box: [30, 45, 130, 146], radius: 30000 },
+  kenya:      { label: "Kenya",          icon: "🇰🇪", desc: "Savannas & coast",            country: "KE", type: "box", box: [-4.7, 5, 33.9, 41.9], radius: 50000 },
+  malaysia:   { label: "Malaysia",       icon: "🇲🇾", desc: "Peninsula & Borneo",          country: "MY", type: "box", box: [1, 7.5, 99.5, 119.5], radius: 40000 },
+  mexico:     { label: "Mexico",         icon: "🇲🇽", desc: "Border to border",            country: "MX", type: "box", box: [14, 32, -118, -86], radius: 50000 },
+  netherlands:{ label: "Netherlands",    icon: "🇳🇱", desc: "Flat & cycled",               country: "NL", type: "box", box: [50.7, 53.5, 3.3, 7.2], radius: 20000 },
+  newzealand: { label: "New Zealand",    icon: "🇳🇿", desc: "Two islands",                 country: "NZ", type: "box", box: [-47, -34, 166, 179], radius: 40000 },
+  norway:     { label: "Norway",         icon: "🇳🇴", desc: "Fjords & tundra",             country: "NO", type: "box", box: [58, 71, 4, 31], radius: 50000 },
+  peru:       { label: "Peru",           icon: "🇵🇪", desc: "Coast, Andes, Amazon",        country: "PE", type: "box", box: [-18.4, 0, -81.3, -68.7], radius: 60000 },
+  philippines:{ label: "Philippines",    icon: "🇵🇭", desc: "Archipelago of 7,000",        country: "PH", type: "box", box: [5, 19, 117, 126.5], radius: 40000 },
+  poland:     { label: "Poland",         icon: "🇵🇱", desc: "Baltic to Tatras",            country: "PL", type: "box", box: [49, 55, 14, 24], radius: 30000 },
+  portugal:   { label: "Portugal",       icon: "🇵🇹", desc: "Atlantic west",               country: "PT", type: "box", box: [37, 42, -10, -6], radius: 25000 },
+  russia:     { label: "Russia",         icon: "🇷🇺", desc: "Across 11 time zones",        country: "RU", type: "box", box: [44, 70, 27, 178], radius: 100000 },
+  southafrica:{ label: "South Africa",   icon: "🇿🇦", desc: "Cape to Limpopo",             country: "ZA", type: "box", box: [-35, -22, 16.5, 33], radius: 50000 },
+  southkorea: { label: "South Korea",    icon: "🇰🇷", desc: "Mountains & cities",          country: "KR", type: "box", box: [33, 38.6, 125.5, 130], radius: 25000 },
+  spain:      { label: "Spain",          icon: "🇪🇸", desc: "Mainland Iberia",             country: "ES", type: "box", box: [36, 44, -10, 4], radius: 30000 },
+  sweden:     { label: "Sweden",         icon: "🇸🇪", desc: "Long Nordic country",         country: "SE", type: "box", box: [55, 69, 11, 24], radius: 40000 },
+  switzerland:{ label: "Switzerland",    icon: "🇨🇭", desc: "Alpine confederation",        country: "CH", type: "box", box: [45.8, 47.8, 5.9, 10.5], radius: 20000 },
+  thailand:   { label: "Thailand",       icon: "🇹🇭", desc: "Gulf to Mekong",              country: "TH", type: "box", box: [5.6, 20.5, 97.3, 105.6], radius: 40000 },
+  turkey:     { label: "Turkey",         icon: "🇹🇷", desc: "Two continents",              country: "TR", type: "box", box: [36, 42, 26, 45], radius: 40000 },
+  uk:         { label: "United Kingdom", icon: "🇬🇧", desc: "Britain & N. Ireland",        country: "GB", type: "box", box: [50, 59, -8, 2], radius: 30000 },
+  usa:        { label: "USA",            icon: "🇺🇸", desc: "Mainland + Alaska",           country: "US", type: "boxes", boxes: [[25, 49, -125, -67, 9], [54, 71, -167, -141, 1]], radius: 60000 },
 
   // Curated
   cities:     { label: "Famous Cities",     icon: "🏙️", desc: "44 major world cities",   type: "points", points: CITIES,    radius: 8000 },
@@ -245,6 +280,7 @@ const state = {
   timerId: null,
   timeLeft: 0,
   roundActive: false,
+  usedPanoIds: new Set(),  // pano IDs already used this game; reset each new game
 };
 
 // ---------- Bootstrap Google Maps ----------
@@ -298,38 +334,67 @@ function samplePoint(loc) {
   throw new Error("Unknown location type: " + loc.type);
 }
 
-function findStreetView(loc) {
-  return new Promise((resolve, reject) => {
-    const svc = new google.maps.StreetViewService();
-    let attempts = 0;
-    const max = loc.type === "points" ? 30 : 100;
-    const tryOnce = () => {
-      attempts++;
-      if (attempts > max) return reject(new Error("Could not find Street View"));
-      svc.getPanorama(
-        {
-          location: samplePoint(loc),
-          radius: loc.radius || 50000,
-          source: google.maps.StreetViewSource.OUTDOOR,
-          preference: google.maps.StreetViewPreference.NEAREST,
-        },
-        (data, status) => {
-          if (status === "OK" && data && data.location) {
-            resolve({
-              panoId: data.location.pano,
-              latLng: {
-                lat: data.location.latLng.lat(),
-                lng: data.location.latLng.lng(),
-              },
-            });
-          } else {
-            tryOnce();
+function getPanoramaAt(svc, location, radius) {
+  return new Promise((resolve) => {
+    svc.getPanorama(
+      {
+        location,
+        radius,
+        source: google.maps.StreetViewSource.OUTDOOR,
+        preference: google.maps.StreetViewPreference.NEAREST,
+      },
+      (data, status) => {
+        if (status === "OK" && data && data.location) {
+          resolve({
+            panoId: data.location.pano,
+            latLng: {
+              lat: data.location.latLng.lat(),
+              lng: data.location.latLng.lng(),
+            },
+          });
+        } else {
+          resolve(null);
+        }
+      }
+    );
+  });
+}
+
+function isInAllowedCountries(geocoder, latLng, allowed) {
+  return new Promise((resolve) => {
+    geocoder.geocode({ location: latLng }, (results, status) => {
+      if (status !== "OK" || !results) return resolve(false);
+      for (const r of results) {
+        for (const c of r.address_components || []) {
+          if (c.types.includes("country") && allowed.has(c.short_name)) {
+            return resolve(true);
           }
         }
-      );
-    };
-    tryOnce();
+      }
+      resolve(false);
+    });
   });
+}
+
+async function findStreetView(loc) {
+  const svc = new google.maps.StreetViewService();
+  const allowedList = loc.country ? [loc.country] : loc.countries;
+  const allowed = allowedList ? new Set(allowedList) : null;
+  const geocoder = allowed ? new google.maps.Geocoder() : null;
+  const max = loc.type === "points" ? 30 : 150;
+
+  for (let attempts = 0; attempts < max; attempts++) {
+    const pano = await getPanoramaAt(svc, samplePoint(loc), loc.radius || 50000);
+    if (!pano) continue;
+    if (state.usedPanoIds.has(pano.panoId)) continue;  // no repeats within a game
+    if (geocoder) {
+      const ok = await isInAllowedCountries(geocoder, pano.latLng, allowed);
+      if (!ok) continue;
+    }
+    state.usedPanoIds.add(pano.panoId);
+    return pano;
+  }
+  throw new Error("Could not find Street View");
 }
 
 // ---------- Scoring ----------
@@ -399,6 +464,7 @@ function chooseLocation(locKey) {
 async function startGame() {
   state.round = 0;
   state.totalScore = 0;
+  state.usedPanoIds.clear();
   $("total-score").textContent = "0";
   hide($("final-overlay"));
   hide($("result-overlay"));
